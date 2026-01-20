@@ -3,26 +3,29 @@ FROM ghcr.io/parkervcp/yolks:wine_staging
 
 # setting symlinks for system directories
 USER root
-#RUN mkdir -p /home/container/.local/share /home/container/.config \
-#    && ln -s /home/container/.local/share /mnt/server/linux_local_share \
-#    && ln -s /home/container/.config /mnt/server/linux_config \
-#    && chown -R container:container /home/container
 
 
 
 
 
-USER root
+# 1. Notwendige Bibliotheken für Sound-Dummys und 7D2D Abhängigkeiten
+RUN apt-get update && apt-get install -y \
+    libasound2 \
+    libasound2-plugins \
+    alsa-utils \
+    && apt-get clean
 
-RUN mkdir -v -p /home/container/Windows_AppData
+# 2. Wine-Umgebung festlegen (64-Bit ist Pflicht für 7D2D)
+ENV WINEARCH=win64
+ENV WINEPREFIX=/home/container/.wine
+ENV WINEDEBUG=-all
+# Audio-Treiber auf 'null' setzen, um ALSA-Fehler zu vermeiden
+ENV WINEDLLOVERRIDES="winealsa.drv,winemmoe.drv=d"
 
-RUN mkdir -v -p /home/container/.local/share
-RUN mkdir -v -p /home/container/.config
 
-RUN ln -v -s /home/container/.local/share /home/container/Windows_AppData/LocalShare
-RUN ln -v -s /home/container/.config /home/container/Windows_AppData/Config
-
-RUN chown -R container:container /home/container
+# Wechsel zum User container für die Initialisierung
+USER container
+RUN wineboot -u && wineserver -w
 
 
 
