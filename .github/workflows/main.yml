@@ -1,0 +1,35 @@
+name: Build and Push Runner Image
+
+on:
+  push:
+    branches: ["main"] # Startet bei jeder Änderung am Main-Branch
+    paths:
+      - 'Dockerfile'   # Startet nur, wenn sich das Dockerfile ändert
+  workflow_dispatch:   # Das hier fügt den manuellen Button hinzu!
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Erzeugt das Image mit dem Namen: ghcr.io/dein-name/repo-name:latest
+          # Username hardcoded, da yaml kein toLower kann
+          tags: ghcr.io/ir3nicuz/${{ github.event.repository.name }}:latest
