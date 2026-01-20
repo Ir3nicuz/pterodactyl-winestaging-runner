@@ -9,20 +9,22 @@ USER root
 #    && chown -R container:container /home/container
 
 
-# Schritt 1: Prüfen ob der User existiert und Ergebnis loggen
-RUN echo "Prüfe User 'container'..." && id container
 
-# Schritt 2: Verzeichnisse erstellen
+
+
+USER root
+
+RUN mkdir -v -p /home/container/Windows_AppData
+
 RUN mkdir -v -p /home/container/.local/share
 RUN mkdir -v -p /home/container/.config
 
-# Schritt 4: Symlinks erstellen
-RUN ln -v -s /home/container/.local/share /mnt/server/linux_local_share
-RUN ln -v -s /home/container/.config /mnt/server/linux_config
+RUN ln -v -s /home/container/.local/share /home/container/Windows_AppData/LocalShare
+RUN ln -v -s /home/container/.config /home/container/Windows_AppData/Config
 
-# Schritt 5: Rechte vergeben und Ergebnis loggen
-RUN chown -v -R container:container /home/container
-RUN ls -la /home/container
+RUN chown -R container:container /home/container
+
+
 
 
 # back to standard
