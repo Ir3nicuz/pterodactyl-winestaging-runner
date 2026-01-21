@@ -10,7 +10,7 @@ ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEARCH=win64
 ENV WINEDEBUG=+err,+module
 ENV WINEPREFIX=/home/container/.wine
-ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv="
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d"
 
 USER root
 
