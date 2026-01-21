@@ -11,6 +11,7 @@ ENV DISPLAY=:0
 ENV WINEARCH=win64
 ENV WINEDEBUG=-all
 ENV WINEPREFIX=/home/container/.wine
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv="
 
 USER root
 
@@ -67,27 +68,19 @@ fi
 echo -e "${GREENSUCCESSTAG} Variables validation done!"
 
 # --- Launch ---
-export APP_ID=${STEAMGAME_APPID}
-
-# virtual display init
-echo -e "${BLUEINFOTAG} Initializing virtual dummy Display ..."
-Xvfb :0 -screen 0 1024x768x16 &
-sleep 3
-if pgrep -x "Xvfb" > /dev/null; then
-    echo -e "${GREENSUCCESSTAG} Virtual dummy Display started successfully!"
-else
-    echo -e "${YELLOWWARNINGTAG} Virtual dummy Display failed to start. Wine might crash."
-fi
-
 # wine init
+export SRCDS_APPID=${STEAMGAME_APPID}
 if [[ ! -d "$WINEPREFIX" ]]; then
     echo -e "${BLUEINFOTAG} Initializing Wine Prefix ..."
     wineboot --init
+	wineserver -w
 	echo -e "${GREENSUCCESSTAG} Wine initialization done!"
 fi
 
-echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${APP_ID} ..."
-exec wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+# server start with virtual graphics dummy xvfb
+echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${STEAMGAME_APPID} ..."
+exec xvfb-run --auto-servernum --server-args="-screen 0 1024x768x16" \
+    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
