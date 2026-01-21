@@ -17,6 +17,7 @@ USER root
 
 # SteamCmd and Wings dependencies integration
 RUN dpkg --add-architecture i386 && \
+    sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     xvfb \
