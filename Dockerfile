@@ -88,6 +88,8 @@ if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
 	
     touch "$WINEPREFIX/vcredist_installed.flag"
     echo -e "${GREENSUCCESSTAG} Wine and VC++ initialization done!"
+
+	wineserver -k
 	sleep 3
 fi
 
