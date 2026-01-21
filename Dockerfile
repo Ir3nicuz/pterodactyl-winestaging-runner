@@ -87,7 +87,7 @@ echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PAT
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 cd "$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")"
 exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-    wine64 "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
