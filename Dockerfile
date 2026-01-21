@@ -21,7 +21,7 @@ RUN dpkg --add-architecture i386 \
     && apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-dri libglx-mesa0 libgl1 \
     libx11-6 libxcomposite1 libxcursor1 libxinerama1 libxrandr2 libxtst6 libxrender1 libxi6 \
-    libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 \
+    libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 libxtst6:i386 \
     libasound2 libasound2-plugins libasound2:i386 \
 	xvfb zenity cabextract wget ca-certificates libntlm0 gettext \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
@@ -86,22 +86,26 @@ fi
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
-
-GAME_DIR=$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")
-GAME_EXE=$(basename "${STEAMGAME_PATHTOEXE}")
-echo -e "${BLUEINFOTAG} Changing directory to ${GAME_DIR} ..."
-cd "${GAME_DIR}"
 echo "${STEAMGAME_APPID}" > "${GAME_DIR}/steam_appid.txt"
 
-echo -e "${BLUEINFOTAG} Starting Server: ${GAME_EXE} ${STEAMGAME_STARTUPPARAMS}"
-export ALSA_CONFIG_PATH=/dev/null
-
-Xvfb :99 -screen 0 1024x768x24 -nolisten unix &
+# ------DEBUGVERSION of wine start
+cd "/home/container"
 export DISPLAY=:99
+Xvfb :99 -screen 0 1024x768x24 -nolisten unix &
 sleep 2
-chmod +x ./"${GAME_EXE}"
-wine ./"${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS}
-sleep 10
+
+LOG_FILE="/home/container/wine_debug.log"
+wine start /unix "/home/container/${STEAMGAME_PATHTOEXE}" \
+    ${STEAMGAME_STARTUPPARAMS} > "${LOG_FILE}" 2>&1 &
+
+sleep 3
+if [ -f "${LOG_FILE}" ]; then
+    tail -f "${LOG_FILE}" &
+    TAIL_PID=$!
+fi
+
+wineserver -w
+[ -n "${TAIL_PID}" ] && kill "${TAIL_PID}"
 
 EOF
 
