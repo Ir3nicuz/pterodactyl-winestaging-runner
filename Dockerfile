@@ -19,12 +19,11 @@ USER root
 RUN dpkg --add-architecture i386 \
     && sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true \
     && apt-get update && apt-get install -y --no-install-recommends \
-    xvfb \
-    libxrender1 libxinerama1 libxi6:i386 libxrandr2:i386 \
+    libxrender1 libxinerama1 libxi6 libxrandr2 libgl1 libglx-mesa0 libxcomposite1 libxcursor1 libxtst6 \
+    libxi6:i386 libxrandr2:i386 libgl1:i386 libglx-mesa0:i386 \
     libasound2 libpulse0 libnss3 \
-    lib32gcc-s1 lib32stdc++6 libgl1:i386 libglx-mesa0:i386 \
-    libxcomposite1 libxcursor1 libxi6 libxrandr2 libxtst6 \
-    zenity cabextract \
+    lib32gcc-s1 lib32stdc++6 \
+    xvfb zenity cabextract \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
