@@ -96,8 +96,10 @@ sleep 2
 
 LOG_FILE="/home/container/wine_debug.log"
 wine reg add "HKEY_CURRENT_USER\Software\Wine\Drivers" /v "Audio" /t REG_SZ /d "" /f
-wine start /unix "/home/container/${STEAMGAME_PATHTOEXE}" \
-    ${STEAMGAME_STARTUPPARAMS} > "${LOG_FILE}" 2>&1 &
+cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
+chmod -R 755 /home/container
+wine "./$(basename "${STEAMGAME_PATHTOEXE}")" \
+    ${STEAMGAME_STARTUPPARAMS} 2>&1 | tee -a "${LOG_FILE}" &
 
 sleep 3
 if [ -f "${LOG_FILE}" ]; then
@@ -113,6 +115,10 @@ EOF
 # script execution permissions
 RUN chmod +x /usr/local/bin/launch
 RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
+RUN chown -R container:container /home/container
+
+USER container
+WORKDIR /home/container
 
 # launch image script context setup
 USER container
