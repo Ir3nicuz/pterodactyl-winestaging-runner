@@ -19,11 +19,10 @@ USER root
 RUN dpkg --add-architecture i386 \
     && sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true \
     && apt-get update && apt-get install -y --no-install-recommends \
-    libxrender1 libxinerama1 libxi6 libxrandr2 libgl1 libglx-mesa0 libxcomposite1 libxcursor1 libxtst6 \
-    libxi6:i386 libxrandr2:i386 libgl1:i386 libglx-mesa0:i386 \
-    libasound2 libpulse0 libnss3 \
-    lib32gcc-s1 lib32stdc++6 \
-    xvfb zenity cabextract \
+    libgl1-mesa-dri libglx-mesa0 libgl1 \
+    libx11-6 libxcomposite1 libxcursor1 libxinerama1 libxrandr2 libxtst6 libxrender1 libxi6 \
+    libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 \
+    xvfb zenity cabextract wget ca-certificates \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -86,8 +85,9 @@ fi
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
+cd "$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")"
 exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+    wine64 "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
