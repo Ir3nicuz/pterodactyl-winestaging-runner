@@ -85,7 +85,7 @@ fi
 # server start with virtual graphics dummy xvfb
 echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${STEAMGAME_APPID} ..."
 exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS} 2>&1 | grep "err:"
 
 EOF
 
