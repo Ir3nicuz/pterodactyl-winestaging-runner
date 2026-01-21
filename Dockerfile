@@ -12,6 +12,7 @@ ENV WINEARCH=win64
 ENV WINEDEBUG=+err
 ENV WINEPREFIX=/home/container/.wine
 ENV WINEDLLOVERRIDES="mscoree,mshtml=d;mmdevapi=b;winealsa.drv=b"
+ENV TZ=UTC
 
 USER root
 
@@ -86,7 +87,6 @@ fi
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
-echo "${STEAMGAME_APPID}" > "${GAME_DIR}/steam_appid.txt"
 
 # ------DEBUGVERSION of wine start
 cd "/home/container"
@@ -95,6 +95,7 @@ Xvfb :99 -screen 0 1024x768x24 -nolisten unix &
 sleep 2
 
 LOG_FILE="/home/container/wine_debug.log"
+wine reg add "HKEY_CURRENT_USER\Software\Wine\Drivers" /v "Audio" /t REG_SZ /d "" /f
 wine start /unix "/home/container/${STEAMGAME_PATHTOEXE}" \
     ${STEAMGAME_STARTUPPARAMS} > "${LOG_FILE}" 2>&1 &
 
