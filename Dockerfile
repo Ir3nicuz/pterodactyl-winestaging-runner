@@ -15,19 +15,18 @@ ENV WINEPREFIX=/home/container/.wine
 USER root
 
 # SteamCmd and Wings dependencies integration
-RUN apt update && apt install -y --no-install-recommends \
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     xvfb \
     libasound2t64 \
     libpulse0 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxi6 \
-    libxrandr2 \
-    libxtst6 \
-    libgl1-mesa-glx:i386 \
     libgl1:i386 \
+    libglx-mesa0:i386 \
     libnss3 \
-    libgconf-2-4
+    lib32gcc-s1 \
+    lib32stdc++6 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Here-Doc definition of launch script as launch
 RUN <<'EOF' cat > /usr/local/bin/launch
