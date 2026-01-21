@@ -96,18 +96,12 @@ echo "${STEAMGAME_APPID}" > "${GAME_DIR}/steam_appid.txt"
 echo -e "${BLUEINFOTAG} Starting Server: ${GAME_EXE} ${STEAMGAME_STARTUPPARAMS}"
 export ALSA_CONFIG_PATH=/dev/null
 
-rm -f "${GAME_DIR}/7D2D.log"
-touch "${GAME_DIR}/7D2D.log"
 Xvfb :99 -screen 0 1024x768x24 -nolisten unix &
 export DISPLAY=:99
 sleep 2
-tail -f "${GAME_DIR}/7D2D.log" &
-TAIL_PID=$!
-echo -e "${BLUEINFOTAG} Starting Server..."
-wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS} -logfile "${GAME_DIR}/7D2D.log" -force-glcore &
-wineserver -w
-kill $TAIL_PID
-echo -e "${YELLOWWARNINGTAG} Wineserver stopped."
+chmod +x ./"${GAME_EXE}"
+wine ./"${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS}
+sleep 10
 
 EOF
 
