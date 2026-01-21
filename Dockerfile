@@ -32,6 +32,8 @@ RUN dpkg --add-architecture i386 && \
     libxi6 \
     libxrandr2 \
     libxtst6 \
+	winetricks \
+    zenity \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Here-Doc definition of launch script as launch
@@ -70,11 +72,20 @@ echo -e "${GREENSUCCESSTAG} Variables validation done!"
 # --- Launch ---
 # wine init
 export SRCDS_APPID=${STEAMGAME_APPID}
-if [[ ! -d "$WINEPREFIX" ]]; then
-    echo -e "${BLUEINFOTAG} Initializing Wine Prefix ..."
-    wineboot --init
-	wineserver -w
-	echo -e "${GREENSUCCESSTAG} Wine initialization done!"
+
+if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
+    echo -e "${BLUEINFOTAG} Initializing Wine with Windows components ..."
+    
+    rm -rf "$WINEPREFIX"
+    xvfb-run --auto-servernum wineboot --init
+    wineserver -w
+	
+    echo -e "${BLUEINFOTAG} Installing VC++ Runtime2022 via winetricks ..."
+    xvfb-run --auto-servernum winetricks -q vcrun2022
+    wineserver -w
+    
+    touch "$WINEPREFIX/vcredist_installed.flag"
+    echo -e "${GREENSUCCESSTAG} Wine and VC++ initialization done!"
 fi
 
 # server start with virtual graphics dummy xvfb
