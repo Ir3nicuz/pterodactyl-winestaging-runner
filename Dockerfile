@@ -11,7 +11,7 @@ ENV WINEARCH=win64
 # add ,+module to show module dependencies
 ENV WINEDEBUG=+err
 ENV WINEPREFIX=/home/container/.wine
-ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv=d;mmdevapi=d"
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d;mmdevapi=b;winealsa.drv=b"
 
 USER root
 
@@ -87,44 +87,20 @@ echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} .
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 
-
-
-
-
-
-
-# Vorbereitung des Pfads
 GAME_DIR=$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")
 GAME_EXE=$(basename "${STEAMGAME_PATHTOEXE}")
-
 echo -e "${BLUEINFOTAG} Changing directory to ${GAME_DIR} ..."
 cd "${GAME_DIR}"
-
-# WICHTIG: Pulseaudio/ALSA Fehlermeldungen unterdrücken
-export ALSA_CONFIG_PATH=/dev/null
+echo "${STEAMGAME_APPID}" > "${GAME_DIR}/steam_appid.txt"
 
 echo -e "${BLUEINFOTAG} Starting Server: ${GAME_EXE} ${STEAMGAME_STARTUPPARAMS}"
-
-# Wir starten Xvfb manuell im Hintergrund, um mehr Kontrolle zu haben
+export ALSA_CONFIG_PATH=/dev/null
 Xvfb :99 -screen 0 1024x768x16 -nolisten unix &
 export DISPLAY=:99
-
-# Start des Spiels
-# Wir nutzen kein 'exec', damit wir ggf. Fehler abfangen können
-wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS}
-
-# Falls Wine sofort beendet wird, warten wir kurz, um Logs zu sehen
-sleep 2
-
-
-
-
-
-
-
-#cd "$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")"
-#exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-#    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS} &
+echo -e "${BLUEINFOTAG} Waiting for wineserver to shut down..."
+wineserver -w
+echo -e "${YELLOWWARNINGTAG} Wineserver stopped. Exit script."
 
 EOF
 
