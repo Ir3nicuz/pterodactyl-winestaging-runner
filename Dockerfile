@@ -11,7 +11,7 @@ ENV WINEARCH=win64
 # add ,+module to show module dependencies
 ENV WINEDEBUG=+err
 ENV WINEPREFIX=/home/container/.wine
-ENV WINEDLLOVERRIDES="mscoree,mshtml=d"
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv=d;mmdevapi=d"
 
 USER root
 
@@ -22,7 +22,8 @@ RUN dpkg --add-architecture i386 \
     libgl1-mesa-dri libglx-mesa0 libgl1 \
     libx11-6 libxcomposite1 libxcursor1 libxinerama1 libxrandr2 libxtst6 libxrender1 libxi6 \
     libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 \
-    xvfb zenity cabextract wget ca-certificates \
+    libasound2 libasound2-plugins libasound2:i386 \
+	xvfb zenity cabextract wget ca-certificates \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -85,9 +86,45 @@ fi
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
-cd "$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")"
-exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
+
+
+
+
+
+
+
+# Vorbereitung des Pfads
+GAME_DIR=$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")
+GAME_EXE=$(basename "${STEAMGAME_PATHTOEXE}")
+
+echo -e "${BLUEINFOTAG} Changing directory to ${GAME_DIR} ..."
+cd "${GAME_DIR}"
+
+# WICHTIG: Pulseaudio/ALSA Fehlermeldungen unterdrücken
+export ALSA_CONFIG_PATH=/dev/null
+
+echo -e "${BLUEINFOTAG} Starting Server: ${GAME_EXE} ${STEAMGAME_STARTUPPARAMS}"
+
+# Wir starten Xvfb manuell im Hintergrund, um mehr Kontrolle zu haben
+Xvfb :99 -screen 0 1024x768x16 -nolisten unix &
+export DISPLAY=:99
+
+# Start des Spiels
+# Wir nutzen kein 'exec', damit wir ggf. Fehler abfangen können
+wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS}
+
+# Falls Wine sofort beendet wird, warten wir kurz, um Logs zu sehen
+sleep 2
+
+
+
+
+
+
+
+#cd "$(dirname "/home/container/${STEAMGAME_PATHTOEXE}")"
+#exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
+#    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
