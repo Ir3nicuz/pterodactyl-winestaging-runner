@@ -33,3 +33,4 @@ jobs:
           # Erzeugt das Image mit dem Namen: ghcr.io/dein-name/repo-name:latest
           # Username hardcoded, da yaml kein toLower kann
           tags: ghcr.io/ir3nicuz/${{ github.event.repository.name }}:latest
+          build-args: ARG_BUILD_NUMBER=${{ github.run_number }}
