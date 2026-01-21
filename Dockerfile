@@ -33,6 +33,7 @@ RUN dpkg --add-architecture i386 \
     libxrandr2 \
     libxtst6 \
     zenity \
+    cabextract \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -76,17 +77,18 @@ export SRCDS_APPID=${STEAMGAME_APPID}
 
 if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
     echo -e "${BLUEINFOTAG} Initializing Wine with Windows components ..."
-    
-    rm -rf "$WINEPREFIX"
-    xvfb-run --auto-servernum wineboot --init
-    wineserver -w
 	
-    echo -e "${BLUEINFOTAG} Installing VC++ Runtime2022 via winetricks ..."
-    xvfb-run --auto-servernum winetricks -q vcrun2022
-    wineserver -w
-    
+    rm -rf "$WINEPREFIX"
+    xvfb-run --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" bash -c "
+        wineboot --init && \
+        wineserver -w && \
+        winetricks -q vcrun2022 && \
+        wineserver -w
+    "
+	
     touch "$WINEPREFIX/vcredist_installed.flag"
     echo -e "${GREENSUCCESSTAG} Wine and VC++ initialization done!"
+	sleep 3
 fi
 
 # server start with virtual graphics dummy xvfb
