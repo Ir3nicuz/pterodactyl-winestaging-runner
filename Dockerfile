@@ -16,10 +16,9 @@ ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv="
 USER root
 
 # SteamCmd and Wings dependencies integration
-RUN dpkg --add-architecture i386 && \
-    sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN dpkg --add-architecture i386 \
+    && sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true 
+    && apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     libasound2 \
     libpulse0 \
@@ -33,8 +32,9 @@ RUN dpkg --add-architecture i386 && \
     libxi6 \
     libxrandr2 \
     libxtst6 \
-    winetricks \
     zenity \
+    && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com \
+    && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Here-Doc definition of launch script as launch
