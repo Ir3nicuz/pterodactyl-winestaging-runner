@@ -7,9 +7,8 @@ FROM ghcr.io/parkervcp/yolks:wine_staging
 # Initials
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
-ENV DISPLAY=:0
 ENV WINEARCH=win64
-ENV WINEDEBUG=-all
+ENV WINEDEBUG=+err,+module
 ENV WINEPREFIX=/home/container/.wine
 ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv="
 
@@ -65,7 +64,6 @@ echo -e "${GREENSUCCESSTAG} Variables validation done!"
 # --- Launch ---
 # wine init
 export SRCDS_APPID=${STEAMGAME_APPID}
-
 if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
     echo -e "${BLUEINFOTAG} Initializing Wine with Windows components ..."
 	
@@ -86,7 +84,7 @@ fi
 
 # server start with virtual graphics dummy xvfb
 echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${STEAMGAME_APPID} ..."
-exec xvfb-run --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
+exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
     wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
