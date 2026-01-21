@@ -33,7 +33,7 @@ RUN dpkg --add-architecture i386 \
     libxrandr2 \
     libxtst6 \
     zenity \
-    && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com \
+    && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
