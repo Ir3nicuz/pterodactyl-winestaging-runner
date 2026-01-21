@@ -84,7 +84,9 @@ if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
 fi
 
 # server start with virtual graphics dummy xvfb
-echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${STEAMGAME_APPID} ..."
+echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
+echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
+echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
     wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
