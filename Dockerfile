@@ -8,7 +8,8 @@ FROM ghcr.io/parkervcp/yolks:wine_staging
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEARCH=win64
-ENV WINEDEBUG=+err,+module
+# add ,+module to show module dependencies
+ENV WINEDEBUG=+err
 ENV WINEPREFIX=/home/container/.wine
 ENV WINEDLLOVERRIDES="mscoree,mshtml=d"
 
@@ -85,7 +86,7 @@ fi
 # server start with virtual graphics dummy xvfb
 echo -e "${BLUEINFOTAG} Starting Server with Steam Id ${STEAMGAME_APPID} ..."
 exec xvfb-run -a --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" \
-    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS} 2>&1 | grep "err:"
+    wine "${STEAMGAME_PATHTOEXE}" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
