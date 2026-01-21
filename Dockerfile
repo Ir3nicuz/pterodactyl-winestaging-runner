@@ -33,8 +33,8 @@ RUN dpkg --add-architecture i386 && \
     libxrandr2 \
     libxtst6 \
 	winetricks \
-    zenity \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+	zenity \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Here-Doc definition of launch script as launch
 RUN <<'EOF' cat > /usr/local/bin/launch
