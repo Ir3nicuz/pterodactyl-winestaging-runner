@@ -23,7 +23,7 @@ RUN dpkg --add-architecture i386 \
     libx11-6 libxcomposite1 libxcursor1 libxinerama1 libxrandr2 libxtst6 libxrender1 libxi6 \
     libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 \
     libasound2 libasound2-plugins libasound2:i386 \
-	xvfb zenity cabextract wget ca-certificates \
+	xvfb zenity cabextract wget ca-certificates libntlm0 gettext \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -71,7 +71,7 @@ if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
     xvfb-run --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" bash -c "
         wineboot --init && \
         wineserver -w && \
-        winetricks -q vcrun2022 && \
+        winetricks -q vcrun2022 corefonts mono && \
         wineserver -w
     "
 	
@@ -97,7 +97,7 @@ echo -e "${BLUEINFOTAG} Starting Server: ${GAME_EXE} ${STEAMGAME_STARTUPPARAMS}"
 export ALSA_CONFIG_PATH=/dev/null
 Xvfb :99 -screen 0 1024x768x16 -nolisten unix &
 export DISPLAY=:99
-wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS} &
+wine "${GAME_EXE}" ${STEAMGAME_STARTUPPARAMS} -logfile /dev/stdout &
 echo -e "${BLUEINFOTAG} Waiting for wineserver to shut down..."
 wineserver -w
 echo -e "${YELLOWWARNINGTAG} Wineserver stopped. Exit script."
