@@ -19,13 +19,18 @@ RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     xvfb \
-    libasound2t64 \
+    libasound2 \
     libpulse0 \
-    libgl1:i386 \
-    libglx-mesa0:i386 \
     libnss3 \
     lib32gcc-s1 \
     lib32stdc++6 \
+    libgl1:i386 \
+    libglx-mesa0:i386 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxi6 \
+    libxrandr2 \
+    libxtst6 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Here-Doc definition of launch script as launch
