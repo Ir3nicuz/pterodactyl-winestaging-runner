@@ -1,35 +1,22 @@
 # syntax=docker/dockerfile:1
 # ^^^ This line must be the first in the script to activate the Heredoc-Feature.
 
-# use wine staging as basic image
-FROM ghcr.io/parkervcp/yolks:wine_staging
+# Use as basic image
+FROM ghcr.io/pterodactyl/yolks:wine_proton
 
 # Initials
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
-ENV WINEARCH=win64
-# add ,+module to show module dependencies
-ENV WINEDEBUG=+err
-ENV WINEPREFIX=/home/container/.wine
-ENV WINEDLLOVERRIDES="mscoree,mshtml=d;mmdevapi=b;winealsa.drv=b"
-ENV TZ=UTC
-
 USER root
 
-# SteamCmd and Wings dependencies integration
-RUN dpkg --add-architecture i386 \
-    && sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list || true \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-dri libglx-mesa0 libgl1 \
-    libx11-6 libxcomposite1 libxcursor1 libxinerama1 libxrandr2 libxtst6 libxrender1 libxi6 \
-    libgl1:i386 libglx-mesa0:i386 libxi6:i386 libxrender1:i386 libxtst6:i386 \
-    libasound2 libasound2-plugins libasound2:i386 \
-	xvfb zenity cabextract wget ca-certificates libntlm0 gettext \
+# Tools and Helper integration
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    procps cabextract wget \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Here-Doc definition of launch script as launch
+# Here-Doc definition of launch script
 RUN <<'EOF' cat > /usr/local/bin/launch
 #!/bin/bash
 
@@ -39,7 +26,7 @@ GREENSUCCESSTAG='\e[32m[SUCCESS]\e[0m'
 YELLOWWARNINGTAG='\e[33m[WARNING]\e[0m'
 BLUEINFOTAG='\e[34m[INFO]\e[0m'
 
-# startup
+# --- Startup ---
 sleep 1
 echo -e "${BLUEINFOTAG} Starting launch script (Build-Rev: ${ENV_BUILD_NUMBER}) ..."
 
@@ -63,63 +50,18 @@ fi
 echo -e "${GREENSUCCESSTAG} Variables validation done!"
 
 # --- Launch ---
-# wine init
-export SRCDS_APPID=${STEAMGAME_APPID}
-if [[ ! -f "$WINEPREFIX/vcredist_installed.flag" ]]; then
-    echo -e "${BLUEINFOTAG} Initializing Wine with Windows components ..."
-	
-    rm -rf "$WINEPREFIX"
-    xvfb-run --auto-servernum --server-args="-screen 0 1024x768x16 -nolisten unix" bash -c "
-        wineboot --init && \
-        wineserver -w && \
-        winetricks -q vcrun2022 corefonts mono && \
-        wineserver -w
-    "
-	
-    touch "$WINEPREFIX/vcredist_installed.flag"
-    echo -e "${GREENSUCCESSTAG} Wine and VC++ initialization done!"
-
-	wineserver -k
-	sleep 3
-fi
-
-# server start with virtual graphics dummy xvfb
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
-
-# ------DEBUGVERSION of wine start
-cd "/home/container"
-export DISPLAY=:99
-Xvfb :99 -screen 0 1024x768x24 -nolisten unix &
-sleep 2
-
-LOG_FILE="/home/container/wine_debug.log"
-wine reg add "HKEY_CURRENT_USER\Software\Wine\Drivers" /v "Audio" /t REG_SZ /d "" /f
 cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
-chmod -R 755 /home/container
-wine "./$(basename "${STEAMGAME_PATHTOEXE}")" \
-    ${STEAMGAME_STARTUPPARAMS} 2>&1 | tee -a "${LOG_FILE}" &
-
-sleep 3
-if [ -f "${LOG_FILE}" ]; then
-    tail -f "${LOG_FILE}" &
-    TAIL_PID=$!
-fi
-
-wineserver -w
-[ -n "${TAIL_PID}" ] && kill "${TAIL_PID}"
+wine64 "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
 # script execution permissions
-RUN chmod +x /usr/local/bin/launch
-RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
-RUN chown -R container:container /home/container
-
-USER container
-WORKDIR /home/container
+RUN chmod +x /usr/local/bin/launch && chown container:container /usr/local/bin/launch
 
 # launch image script context setup
 USER container
 WORKDIR /home/container
+CMD ["/usr/local/bin/launch"]
