@@ -9,12 +9,13 @@ ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEDEBUG=fixme-all,warn-all,info-all,+err
 ENV WINEARCH=win64
-ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d"
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d;d3d11=d;d3d9=d;dxgi=d"
 USER root
 
 # Tools and Helper integration
 RUN apt-get update && apt-get install -y --no-install-recommends \
     procps cabextract wget xvfb xauth \
+    wine-mono wine-gecko \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -70,6 +71,8 @@ echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME
 
 wineboot --init
 wineserver -w
+sleep 3
+wineserver -k
 sleep 3
 
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
