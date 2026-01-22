@@ -82,11 +82,11 @@ echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PAT
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
-    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} > /home/container/wine_out.log 2> /home/container/wine_err.log
+    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} > 2>&1 | grep -vE "(00xx:|memorysetup-|allocator-)"
 else
     echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
     xvfb-run --auto-servernum --server-args="-screen 0 640x480x24 -ac" \
-        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} > /home/container/wine_out.log 2> /home/container/wine_err.log
+        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} 2>&1 | grep -vE "(00xx:|memorysetup-|allocator-)"
 fi
 
 EOF
