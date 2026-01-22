@@ -9,7 +9,7 @@ ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEDEBUG=fixme-all,warn-all,info-all,+err
 ENV WINEARCH=win64
-ENV WINEDLLOVERRIDES="winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d"
+ENV WINEDLLOVERRIDES="mscoree,mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d"
 USER root
 
 # Tools and Helper integration
@@ -70,14 +70,16 @@ echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME
 
 wineboot --init
 wineserver -w
+sleep 3
 
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
     wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 else
-    echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
+    echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."    
     export DISPLAY=:0
-    xvfb-run --auto-servernum --server-args="-screen 0 640x480x24" \
-        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+    Xvfb :0 -screen 0 640x480x24 &
+    sleep 3
+    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 fi
 
 EOF
