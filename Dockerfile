@@ -8,6 +8,8 @@ FROM ghcr.io/parkervcp/yolks:wine_latest
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEDEBUG=fixme-all,warn-all,info-all,+err
+ENV WINEARCH=win64
+ENV WINEDLLOVERRIDES="winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d"
 USER root
 
 # Tools and Helper integration
@@ -59,11 +61,15 @@ export XDG_RUNTIME_DIR=/home/container/tmp/runtime
 mkdir -p $XDG_RUNTIME_DIR
 rm -rf ${XDG_RUNTIME_DIR:?}/* 
 chmod 700 $XDG_RUNTIME_DIR
+cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
+export WINEPREFIX=/home/container/.wine
 
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
-cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
+
+wineboot --init
+wineserver -w
 
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
     wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
