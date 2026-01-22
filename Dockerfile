@@ -15,10 +15,12 @@ USER root
 # Tools and Helper integration
 RUN apt-get update && apt-get install -y --no-install-recommends \
     procps cabextract wget xvfb xauth \
-    wine-mono wine-gecko \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /usr/share/wine/mono /usr/share/wine/gecko \
+    && wget -q -O /usr/share/wine/mono/wine-mono-9.4.0-x86.msi https://dl.winehq.org \
+    && wget -q -O /usr/share/wine/gecko/wine-gecko-2.47.4-x86_64.msi https://dl.winehq.org
 
 # Here-Doc definition of launch script
 RUN <<'EOF' cat > /usr/local/bin/launch
