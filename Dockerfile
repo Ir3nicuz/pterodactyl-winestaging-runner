@@ -7,7 +7,7 @@ FROM ghcr.io/parkervcp/yolks:wine_latest
 # Initials
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
-ENV WINEDEBUG=fixme-all,warn-all,info-all,+err
+ENV WINEDEBUG=-all,err+all
 ENV WINEARCH=win64
 ENV WINEDLLOVERRIDES="mscoree=n,b;mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d;d3d11=d;d3d9=d;dxgi=d"
 USER root
@@ -67,32 +67,26 @@ chmod 700 $XDG_RUNTIME_DIR
 cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
 export WINEPREFIX=/home/container/.wine
 
+if [[ ! -f "${WINEPREFIX}/system.reg" ]]; then
+    echo -e "${BLUEINFOTAG} First start detected. Initializing Wine-Prefix with Mono & Gecko (this may take a while) ..."
+    wineboot --init
+    wineserver -w
+    msiexec /i /usr/share/wine/mono/wine-mono-9.4.0-x86.msi /qn
+    msiexec /i /usr/share/wine/gecko/wine-gecko-2.47.4-x86_64.msi /qn
+    wineserver -w
+    wineserver -k
+fi
+
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 
-wineboot --init
-wineserver -w
-if [ ! -d "${WINEPREFIX}/drive_c/windows/mono" ]; then
-    echo -e "${BLUEINFOTAG} Mono not found in prefix. Installing..."
-    msiexec /i /usr/share/wine/mono/wine-mono-9.4.0-x86.msi /qn
-    wineserver -w
-fi
-if [ ! -d "${WINEPREFIX}/drive_c/windows/system32/gecko" ] && [ ! -d "${WINEPREFIX}/drive_c/windows/SysWOW64/gecko" ]; then
-    echo -e "${BLUEINFOTAG} Gecko not found in prefix. Installing..."
-    msiexec /i /usr/share/wine/gecko/wine-gecko-2.47.4-x86_64.msi /qn
-    wineserver -w
-fi
-sleep 3
-wineserver -k
-sleep 3
-
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
-    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} > /home/container/wine_out.log 2> /home/container/wine_err.log
 else
     echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
     xvfb-run --auto-servernum --server-args="-screen 0 640x480x24 -ac" \
-        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} 2>&1 | tee /home/container/wine_debug.log
+        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} > /home/container/wine_out.log 2> /home/container/wine_err.log
 fi
 
 EOF
