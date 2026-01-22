@@ -10,7 +10,7 @@ ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
 ENV WINEDEBUG=-all,err+all
 ENV WINEARCH=win64
 ENV WINEIPX=d
-ENV WINEDLLOVERRIDES="mscoree=n,b;mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d;d3d11=d;d3d9=d;dxgi=d;ipv6=d"
+ENV WINEDLLOVERRIDES="mscoree=n,b;mshtml=d;winealsa.drv=d;wineoss.drv=d;winemmsystem.drv=d;mmdevapi=d;d3d11=d;d3d9=d;dxgi=d;ipv6=d;winenechnet=d;winsock=builtin"
 USER root
 
 # Tools and Helper integration
