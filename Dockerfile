@@ -50,6 +50,11 @@ fi
 echo -e "${GREENSUCCESSTAG} Variables validation done!"
 
 # --- Launch ---
+export XDG_RUNTIME_DIR=/home/container/tmp/runtime
+mkdir -p $XDG_RUNTIME_DIR
+rm -rf ${XDG_RUNTIME_DIR:?}/* 
+chmod 700 $XDG_RUNTIME_DIR
+
 echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} ..."
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
