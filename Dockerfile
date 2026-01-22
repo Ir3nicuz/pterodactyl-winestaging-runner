@@ -7,6 +7,7 @@ FROM ghcr.io/parkervcp/yolks:wine_latest
 # Initials
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
+ENV WINEDEBUG=+err
 USER root
 
 # Tools and Helper integration
@@ -59,8 +60,7 @@ echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} .
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
-export WINEDEBUG=+fixme,+err
-wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS} 2>&1
+wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 
 EOF
 
