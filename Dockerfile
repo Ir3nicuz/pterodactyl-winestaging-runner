@@ -75,10 +75,22 @@ sleep 3
 if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
     wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 else
-    echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."    
+    echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
+    export XWIN_TMPDIR=$XDG_RUNTIME_DIR
     export DISPLAY=:0
-    Xvfb :0 -screen 0 640x480x24 &
+    Xvfb :0 -screen 0 640x480x24 -nolisten tcp &
     sleep 3
+
+
+
+    # Prüfen ob Xvfb wirklich läuft
+    if ! pgrep -x "Xvfb" > /dev/null; then
+        echo -e "${REDERRORTAG} Xvfb failed to start! Check permissions."
+        exit 1
+    fi
+
+
+    
     wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 fi
 
@@ -86,6 +98,7 @@ EOF
 
 # script execution permissions
 RUN chmod +x /usr/local/bin/launch && chown container:container /usr/local/bin/launch
+RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
 # launch image script context setup
 USER container
