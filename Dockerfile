@@ -7,12 +7,12 @@ FROM ghcr.io/parkervcp/yolks:wine_latest
 # Initials
 ARG ARG_BUILD_NUMBER=-1
 ENV ENV_BUILD_NUMBER=${ARG_BUILD_NUMBER}
-ENV WINEDEBUG=+err
+ENV WINEDEBUG=fixme-all,warn-all,info-all,+err
 USER root
 
 # Tools and Helper integration
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    procps cabextract wget \
+    procps cabextract wget xvfb xauth \
     && wget -q -O /usr/local/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks \
     && chmod +x /usr/local/bin/winetricks \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -48,6 +48,10 @@ if [[ -z "${STEAMGAME_STARTUPPARAMS}" ]]; then
     echo -e "${REDERRORTAG} Variable STEAMGAME_STARTUPPARAMS not set!"
     exit 1
 fi
+if [[ -z "${STEAMGAME_USEVIRTUALMONITOR}" ]]; then
+    echo -e "${REDERRORTAG} Variable STEAMGAME_USEVIRTUALMONITOR not set!"
+    exit 1
+fi
 echo -e "${GREENSUCCESSTAG} Variables validation done!"
 
 # --- Launch ---
@@ -60,7 +64,15 @@ echo -e "${BLUEINFOTAG} Starting Server for STEAMGAME_APPID ${STEAMGAME_APPID} .
 echo -e "${BLUEINFOTAG} Starting Server from STEAMGAME_PATHTOEXE ${STEAMGAME_PATHTOEXE} ..."
 echo -e "${BLUEINFOTAG} Starting Server with STEAMGAME_STARTUPPARAMS ${STEAMGAME_STARTUPPARAMS} ..."
 cd "/home/container/$(dirname "${STEAMGAME_PATHTOEXE}")"
-wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+
+if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
+    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+else
+    echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
+    export DISPLAY=:0
+    xvfb-run --auto-servernum --server-args="-screen 0 640x480x24" \
+        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+fi
 
 EOF
 
