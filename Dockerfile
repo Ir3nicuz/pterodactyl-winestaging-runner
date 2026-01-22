@@ -76,24 +76,8 @@ if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
     wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 else
     echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
-    
-    export X11_UNIX_DIR="${XDG_RUNTIME_DIR}/.X11-unix"
-    mkdir -p "${X11_UNIX_DIR}"
-    chmod 1777 "${X11_UNIX_DIR}"
-    
-    export DISPLAY=:0
-    Xvfb :0 -screen 0 640x480x24 -nolisten tcp -unixdir "${X11_UNIX_DIR}" &
-    sleep 3
-    
-    # Kontrolle
-    if ! pgrep -x "Xvfb" > /dev/null; then
-        echo -e "${REDERRORTAG} Xvfb failed! Most likely due to /tmp permissions."
-        echo -e "${YELLOWWARNINGTAG} Falling back to xvfb-run as last resort..."
-        xvfb-run --auto-servernum --server-args="-screen 0 640x480x24" wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
-        exit $?
-    fi
-    
-    wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
+    xvfb-run --auto-servernum --server-args="-screen 0 640x480x24 -ac" \
+        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS}
 fi
 
 EOF
