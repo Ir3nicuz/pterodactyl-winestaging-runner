@@ -2,7 +2,7 @@
 # ^^^ This line must be the first in the script to activate the Heredoc-Feature.
 
 # Use as basic image
-FROM ghcr.io/pterodactyl/yolks:wine_stable
+FROM ghcr.io/parkervcp/yolks:wine_latest
 
 # Initials
 ARG ARG_BUILD_NUMBER=-1
