@@ -46,7 +46,7 @@ RUN mkdir -p /usr/share/wine/mono /usr/share/wine/gecko /usr/share/wine/vc_redis
 RUN <<'EOF' cat > /usr/local/bin/launch
 #!/bin/bash
     # --- Settings ---
-    XVFBRUNTIME_ARGS=(--auto-servernum --server-args="-screen 0 640x480x24 -ac")
+    XVFBRUNTIME_ARGS=(--auto-servernum --server-args="-screen 0 640x480x24 -ac -nolisten unix -extension MIT-SHM")
     GREPWINELOGS_ARGS="^[0-9a-f]{4}:|err:|fixme:"
     GREPGAMELOGS_ARGS=(--line-buffered -vE "(memorysetup-|allocator-)")
     ROTATELOGS_ARGS=(-n 3 "${GAME_LOGGING_FILE}" 10M)
@@ -88,10 +88,13 @@ RUN <<'EOF' cat > /usr/local/bin/launch
     mkdir -p /home/container/Windows_AppData/{Roaming,Local,LocalLow,Documents} && chmod -R 755 /home/container/Windows_AppData
     WINE_INIT_VERSION=${WINEPREFIX}/initializedWith
     if [[ ! -f "${WINE_INIT_VERSION}" ]] || [[ "$(<"${WINE_INIT_VERSION}")" != "${ENV_BUILD_NUMBER}" ]]; then
-        echo -e "${BLUEINFOTAG} First start detected. Initializing Wine (this may take a while) ..."
-        xvfb-run "${XVFBRUNTIME_ARGS[@]}" /usr/local/bin/.winesetup
-        echo "${ENV_BUILD_NUMBER}" > "${WINE_INIT_VERSION}"
-        echo -e "${GREENSUCCESSTAG} Initializing Wine done!"
+        echo -e "${BLUEINFOTAG} Initializing Wine detected! (this may take a while) ..."
+        xvfb-run "${XVFBRUNTIME_ARGS[@]}" /usr/local/bin/.winesetup && {
+            echo "${ENV_BUILD_NUMBER}" > "${WINE_INIT_VERSION}"
+            echo -e "${GREENSUCCESSTAG} Initializing Wine done!"
+        } || {
+            echo -e "${REDERRORTAG} Wine initialization failed!"
+        }
     fi
     xvfb-run "${XVFBRUNTIME_ARGS[@]}" /usr/local/bin/.winesetupreport
     
@@ -120,16 +123,31 @@ EOF
 
 RUN <<'EOF' cat > /usr/local/bin/.winesetup
 #!/bin/bash
+    # cleanup of logging background process on exit
+    cleanup() {
+        exec >&- 2>&-
+        if [ -n "${loggingrelay:-}" ]; then
+            exec {loggingrelay}>&-
+        fi
+        if [ -n "${LOGGINGRELAY_PID:-}" ]; then
+            wait ${LOGGINGRELAY_PID} 2>/dev/null
+        fi
+    }
+    trap cleanup EXIT
+    set -e
+    
     # prepare error logging tagging background process
-    exec {loggingrelay}> >(while read -r loggingrelayline; do echo -e "${YELLOWWARNINGTAG} ${loggingrelayline}"; done)
+    exec {loggingrelay}> >(sed -u -E "s/^([0-9a-f]{4}:|err:|fixme:)/$(echo -e "${YELLOWWARNINGTAG}") \1/")
     LOGGINGRELAY_PID=$!
     exec >&${loggingrelay} 2>&1
 
     # wine basic initialization
-    wineboot --init
+    echo -e "${BLUEINFOTAG} Starting Basic init ..."
+    WINEDLLOVERRIDES="mscoree=;mshtml=" wineboot --init
     wineserver -w
 
     # replacing the wine standard windows user pathes with more toplevel ones
+    echo -e "${BLUEINFOTAG} Starting Registry init ..."
     printf '%s\n\n' 'Windows Registry Editor Version 5.00' > /tmp/folders.reg
     
     printf '%s\n' '[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders]' >> /tmp/folders.reg
@@ -153,23 +171,22 @@ RUN <<'EOF' cat > /usr/local/bin/.winesetup
     wine regedit /S /tmp/folders.reg
     wineserver -w
 
-    # install mono(.net framework) and gecko(html) sub modules
+    # install mono(.net framework), gecko(html) and c++ runtime sub modules
+    echo -e "${BLUEINFOTAG} Installing Mono ..."
     msiexec /i /usr/share/wine/mono/wine-mono-installer.msi /qn
+    wineserver -w
+    echo -e "${BLUEINFOTAG} Installing Gecko 32bit ..."
     msiexec /i /usr/share/wine/gecko/wine-gecko-installer_32bit.msi /qn
+    wineserver -w
+    echo -e "${BLUEINFOTAG} Installing Gecko 64bit ..."
     msiexec /i /usr/share/wine/gecko/wine-gecko-installer_64bit.msi /qn
     wineserver -w
-
-    # installing c++ runtime module
+    echo -e "${BLUEINFOTAG} Installing Visual C++ Redist ..."
     wine /usr/share/wine/vc_redist/vcredist_installer.exe /install /quiet /norestart
     wineserver -w
 
-    # kill and fresh launch wine server
-    wineserver -k
-
-    # close error logging tagging background process
-    exec >&- 2>&-
-    exec {loggingrelay}>&-
-    wait ${LOGGINGRELAY_PID} 2>/dev/null
+    # kill and fresh launch wine server and ignore errors
+    wineserver -k || true
 EOF
 
 RUN <<'EOF' cat > /usr/local/bin/.winesetupreport
@@ -223,7 +240,6 @@ EOF
 RUN chmod +x /usr/local/bin/launch && chown container:container /usr/local/bin/launch \
     && chmod +x /usr/local/bin/.winesetup && chown container:container /usr/local/bin/.winesetup \
     && chmod +x /usr/local/bin/.winesetupreport && chown container:container /usr/local/bin/.winesetupreport \
-    && mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix \
     && mkdir -p /etc/gnutls && echo "@SYSTEM" > /etc/gnutls/default-priorities && chmod 644 /etc/gnutls/default-priorities
 
 # launch image script context setup
