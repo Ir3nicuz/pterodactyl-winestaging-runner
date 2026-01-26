@@ -107,14 +107,14 @@ RUN <<'EOF' cat > /usr/local/bin/launch
     
     if [[ "${STEAMGAME_USEVIRTUALMONITOR}" == "0" ]]; then
         echo -e "${BLUEINFOTAG} Starting Server without virtual monitor (Xvfb) ..."
-        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" "${STEAMGAME_STARTUPPARAMS}" 2>&1 \
+        wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS:+ ${STEAMGAME_STARTUPPARAMS}} 2>&1 \
             | tee >(grep -E "${GREPWINELOGS_ARGS}" >> "${WINE_LOGGING_FILE}") \
             | grep --line-buffered -vE "${GREPWINELOGS_ARGS}" \
             | grep -E "${GREPGAMELOGS_ARGS[@]}" | tee /dev/tty | rotatelogs "${ROTATELOGS_ARGS[@]}"
     else
         echo -e "${BLUEINFOTAG} Starting Server with virtual monitor (Xvfb) ..."
         xvfb-run "${XVFBRUNTIME_ARGS[@]}" \
-            wine "./$(basename "${STEAMGAME_PATHTOEXE}")" "${STEAMGAME_STARTUPPARAMS}" 2>&1 \
+            wine "./$(basename "${STEAMGAME_PATHTOEXE}")" ${STEAMGAME_STARTUPPARAMS:+ ${STEAMGAME_STARTUPPARAMS}} 2>&1 \
                 | tee >(grep -E "${GREPWINELOGS_ARGS}" >> "${WINE_LOGGING_FILE}") \
                 | grep --line-buffered -vE "${GREPWINELOGS_ARGS}" \
                 | grep -E "${GREPGAMELOGS_ARGS[@]}" | tee /dev/tty | rotatelogs "${ROTATELOGS_ARGS[@]}"
