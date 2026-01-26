@@ -195,8 +195,11 @@ RUN <<'EOF' cat > /usr/local/bin/.winesetupreport
     
     # Wine Version
     printf "    %-15s Version: %s\n" "Wine:" "$(wine --version)"
-    
+
+    # reading registry
     INSTALLED_WINEADDON_MODULES=$(wine reg query "HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall" /s 2>/dev/null | grep -iE "DisplayName|DisplayVersion" | tr -d '\r')
+    INSTALLED_WINEADDON_MODULES+=$'\n'$(wine reg query "HKLM\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" /s 2>/dev/null | grep -iE "DisplayName|DisplayVersion" | tr -d '\r')
+    
     # check the Gecko (Html) registrated Package
     if echo "${INSTALLED_WINEADDON_MODULES}" | grep -qi "Gecko"; then
         echo "${INSTALLED_WINEADDON_MODULES}" | grep "DisplayName" | grep "Gecko" | while read -r gecko_entryline; do
