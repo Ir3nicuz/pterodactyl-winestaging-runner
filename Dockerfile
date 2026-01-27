@@ -119,6 +119,7 @@ RUN <<'EOF' cat > /usr/local/bin/launch
                 | grep --line-buffered -vE "${GREPWINELOGS_ARGS}" \
                 | grep -E "${GREPGAMELOGS_ARGS[@]}" | tee /dev/tty | rotatelogs "${ROTATELOGS_ARGS[@]}"
     fi
+    wineserver -k || pkill -9 wineserver
 EOF
 
 RUN <<'EOF' cat > /usr/local/bin/.winesetup
