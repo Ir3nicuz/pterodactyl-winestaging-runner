@@ -22,7 +22,7 @@ ENV WINEDEBUG=-all,err+all
 ENV WINEARCH=win64
 ENV WINEIPX=d
 ENV WINEPREFIX="/home/container/.wine"
-ENV WINEDLLOVERRIDES="mscoree=n,b;mshtml=d;msvcp140=n,b;msvcp140_1=n,b;msvcp140_2=n,b;vcruntime140=n,b;vcruntime140_1=n,b;vcomp140=n,b;ucrtbase=n,b;vcruntime140_threads=n,b;d3d11=n,b;dxgi=n,b"
+ENV WINEDLLOVERRIDES="mscoree=n,b;mshtml=n,b;msvcp140=n,b;msvcp140_1=n,b;msvcp140_2=n,b;vcruntime140=n,b;vcruntime140_1=n,b;vcomp140=n,b;ucrtbase=n,b;vcruntime140_threads=n,b"
 ENV GNUTLS_SYSTEM_PRIORITY_FILE="/etc/gnutls/default-priorities"
 ENV XDG_RUNTIME_DIR="/home/container/tmp/runtime"
 
