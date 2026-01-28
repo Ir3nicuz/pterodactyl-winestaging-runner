@@ -96,6 +96,7 @@ RUN <<'EOF' cat > /usr/local/bin/launch
             echo -e "${REDERRORTAG} Wine initialization failed!"
         }
     fi
+    wineserver -k || pkill -9 wineserver
     xvfb-run "${XVFBRUNTIME_ARGS[@]}" /usr/local/bin/.winesetupreport
     
     # --- Launch ---
